@@ -13,9 +13,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Read Config.h
-        id: read_config
-        run: echo "content=$(cat Config.h)" >> $GITHUB_OUTPUT
+      - name: Read configuration files
+        id: read_configs
+        run: |
+          echo "config_h_content<<EOF" >> $GITHUB_OUTPUT
+          cat Config.h >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "extended_config_h_content<<EOF" >> $GITHUB_OUTPUT
+          if [ -f extended.config.h ]; then
+            cat extended.config.h >> $GITHUB_OUTPUT
+          fi
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Trigger build in OnStepX_Platformio
         uses: peter-evans/repository-dispatch@v3
@@ -23,7 +32,8 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           repository: rchadgray/OnStepX_Platformio
           event-type: build-onstepx
-          client-payload: >
+          client-payload: |
             {
-              "config_h": "${{ toJSON(steps.read_config.outputs.content) }}"
+              "config_h": ${{ toJSON(steps.read_configs.outputs.config_h_content) }},
+              "extended_config_h": ${{ toJSON(steps.read_configs.outputs.extended_config_h_content) }}
             }
