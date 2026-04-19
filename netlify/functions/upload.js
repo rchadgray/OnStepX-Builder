@@ -1,5 +1,6 @@
 const { Octokit } = require("@octokit/rest");
 
+// v2: Uses createOrUpdateFileContents for robust file commits
 exports.handler = async function(event) {
     if (event.httpMethod !== "POST") {
         return { statusCode: 405, body: "Method Not Allowed" };
