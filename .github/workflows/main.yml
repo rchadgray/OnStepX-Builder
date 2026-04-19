@@ -40,3 +40,16 @@ jobs:
               "config_h": ${{ toJSON(steps.read_configs.outputs.config_h_content) }},
               "extended_config_h": ${{ toJSON(steps.read_configs.outputs.extended_config_h_content) }}
             }
+
+      - name: Clean up config files
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git rm --ignore-unmatch Config.h
+          git rm --ignore-unmatch extended.config.h
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: Clean up config files after build trigger"
+            git push
+          else
+            echo "No config files to clean up."
+          fi
