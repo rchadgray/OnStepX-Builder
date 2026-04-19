@@ -36,7 +36,12 @@ document.getElementById('upload-form').addEventListener('submit', async function
             throw new Error(result.message || 'An unknown error occurred.');
         }
 
-        statusDiv.textContent = 'Files uploaded successfully! The build should trigger shortly.';
+        statusDiv.innerHTML = `
+            <p><strong>Files uploaded successfully! Your build has started.</strong></p>
+            <p>It may take a minute or two for the build to appear. Click the link below and look for the latest workflow run at the top of the list.</p>
+            <p>Once the build is complete, you can download your firmware from the "Artifacts" section on the summary page.</p>
+            <a href="https://github.com/rchadgray/OnStepX_Platformio/actions" target="_blank" rel="noopener noreferrer">Go to Build Results Page</a>
+        `;
 
     } catch (error) {
         statusDiv.textContent = `Error: ${error.message}`;
