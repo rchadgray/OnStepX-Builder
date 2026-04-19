@@ -1,0 +1,29 @@
+name: Trigger OnStepX Build
+
+on:
+  push:
+    paths:
+      - 'Config.h'
+      - 'extended.config.h'
+
+jobs:
+  trigger-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read Config.h
+        id: read_config
+        run: echo "content=$(cat Config.h)" >> $GITHUB_OUTPUT
+
+      - name: Trigger build in OnStepX_Platformio
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: rchadgray/OnStepX_Platformio
+          event-type: build-onstepx
+          client-payload: >
+            {
+              "config_h": "${{ toJSON(steps.read_config.outputs.content) }}"
+            }
