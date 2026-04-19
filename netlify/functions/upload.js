@@ -22,29 +22,33 @@ exports.handler = async function(event) {
         const repo = 'OnStepX-Builder';
         const branch = 'main';
 
-        const { data: refData } = await octokit.rest.git.getRef({ owner, repo, ref: `heads/${branch}` });
-        const baseCommitSha = refData.object.sha;
-
-        const { data: baseTreeData } = await octokit.rest.git.getCommit({ owner, repo, commit_sha: baseCommitSha });
-        const baseTreeSha = baseTreeData.tree.sha;
-
-        const createBlob = async (content) => {
-            const { data } = await octokit.rest.git.createBlob({ owner, repo, content, encoding: 'base64' });
-            return data;
+        const uploadFile = async (path, content) => {
+            let sha;
+            try {
+                const { data } = await octokit.rest.repos.getContent({ owner, repo, path, ref: branch });
+                sha = data.sha;
+            } catch (error) {
+                // If the file doesn't exist, it's fine. We'll create it.
+                if (error.status !== 404) {
+                    throw error;
+                }
+            }
+            
+            await octokit.rest.repos.createOrUpdateFileContents({
+                owner,
+                repo,
+                path,
+                message: `Upload ${path} via web UI`,
+                content: content,
+                branch: branch,
+                sha: sha
+            });
         };
 
-        const configBlob = await createBlob(configFileContent);
-        const fileBlobs = [{ path: 'Config.h', sha: configBlob.sha, mode: '100644', type: 'blob' }];
-
+        await uploadFile('Config.h', configFileContent);
         if (extendedConfigFileContent) {
-            const extendedConfigBlob = await createBlob(extendedConfigFileContent);
-            fileBlobs.push({ path: 'extended.config.h', sha: extendedConfigBlob.sha, mode: '100644', type: 'blob' });
+            await uploadFile('extended.config.h', extendedConfigFileContent);
         }
-        
-        const { data: newTree } = await octokit.rest.git.createTree({ owner, repo, base_tree: baseTreeSha, tree: fileBlobs });
-        const { data: newCommit } = await octokit.rest.git.createCommit({ owner, repo, message: 'Upload configuration files from web UI', tree: newTree.sha, parents: [baseCommitSha] });
-
-        await octokit.rest.git.updateRef({ owner, repo, ref: `heads/${branch}`, sha: newCommit.sha });
 
         return {
             statusCode: 200,
