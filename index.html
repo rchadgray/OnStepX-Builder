@@ -2142,6 +2142,66 @@ function showStatus(msg) {
   setTimeout(() => bar.classList.remove('show'), 3000);
 }
 
+// === EXTENDED CONFIG FUNCTIONS ===
+function generateExtendedConfigFile() {
+  return `/* Extended configuration for OnStepX - INFREQUENTLY USED options */
+// Placeholder for extended configuration
+`;
+}
+
+function copyExtended() {
+  const extendedConfigOutput = document.getElementById('extendedConfigOutput');
+  extendedConfigOutput.select();
+  document.execCommand('copy');
+  alert('Extended Config copied to clipboard!');
+}
+
+function downloadExtended() {
+  const extendedConfigOutput = document.getElementById('extendedConfigOutput');
+  const content = extendedConfigOutput.value || generateExtendedConfigFile();
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'Extended.config.h';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function triggerBuild() {
+  const statusDiv = document.getElementById('statusBar');
+  statusDiv.textContent = 'Generating configuration and starting build...';
+  statusDiv.classList.add('show');
+
+  const configFileContent = generateConfig();
+  const extendedConfigOutput = document.getElementById('extendedConfigOutput');
+  let extendedConfigFileContent = extendedConfigOutput.value;
+  
+  if (!extendedConfigFileContent || extendedConfigFileContent.trim() === '') {
+    extendedConfigFileContent = generateExtendedConfigFile();
+  }
+
+  try {
+    const response = await fetch('/.netlify/functions/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        configFileContent: btoa(configFileContent),
+        extendedConfigFileContent: btoa(extendedConfigFileContent)
+      })
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || 'Build trigger failed');
+    }
+
+    statusDiv.innerHTML = '<strong>✓ Build started successfully!</strong> <a href="https://github.com/rchadgray/OnStepX_Platformio/actions" target="_blank">View Progress</a>';
+  } catch (error) {
+    statusDiv.innerHTML = '<strong>Error:</strong> ' + error.message;
+  }
+}
+
 // === INIT ===
 buildFeatures();
 calcAxis1();
