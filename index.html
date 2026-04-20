@@ -1572,6 +1572,8 @@
 
 <script>
 // === DEFAULT CONFIGURATION FROM CONFIG.H ===
+let statusBarTimeout = null;  // Global timeout tracker to prevent conflicts
+
 const defaultConfig = {
   // Controller
   HOST_NAME: "OnStep",
@@ -2381,9 +2383,20 @@ function loadConfig(event) {
 
 function showStatus(msg) {
   const bar = document.getElementById('statusBar');
+  // Clear any previous timeout
+  if (statusBarTimeout !== null) {
+    clearTimeout(statusBarTimeout);
+    statusBarTimeout = null;
+    console.log("[STATUS] Cleared previous timeout");
+  }
   bar.textContent = msg;
   bar.classList.add('show');
-  setTimeout(() => bar.classList.remove('show'), 3000);
+  statusBarTimeout = setTimeout(() => {
+    bar.classList.remove('show');
+    statusBarTimeout = null;
+    console.log("[STATUS] Auto-hidden after 3 seconds");
+  }, 3000);
+  console.log("[STATUS] Timeout ID:", statusBarTimeout);
 }
 
 // === EXTENDED CONFIG FUNCTIONS ===
@@ -2414,6 +2427,14 @@ function downloadExtended() {
 
 async function triggerBuild() {
   const statusDiv = document.getElementById('statusBar');
+  
+  // Clear any previous timeout to prevent conflicts
+  if (statusBarTimeout !== null) {
+    clearTimeout(statusBarTimeout);
+    statusBarTimeout = null;
+    console.log("[BUILD] Cleared previous timeout before starting");
+  }
+  
   statusDiv.innerHTML = '<strong>⏳ Uploading configuration files...</strong>';
   statusDiv.classList.add('show');
   console.log("[BUILD] Starting build firmware process...");
@@ -2470,11 +2491,17 @@ async function triggerBuild() {
         <span style="font-size: 0.85em; color: #a0b4d0;">⏱️ This message will auto-dismiss in 15 seconds (or click Dismiss)</span>
       </div>
     `;
-    const hideTimeout = setTimeout(() => {
+    
+    // Clear any previous timeout and set a new 15-second one
+    if (statusBarTimeout !== null) {
+      clearTimeout(statusBarTimeout);
+    }
+    statusBarTimeout = setTimeout(() => {
       statusDiv.classList.remove('show');
+      statusBarTimeout = null;
       console.log("[BUILD] Status message auto-hidden after 15 seconds");
     }, 15000);
-    console.log("[BUILD] Timeout ID:", hideTimeout);
+    console.log("[BUILD] Timeout ID set:", statusBarTimeout);
   } catch (error) {
     console.error("[BUILD] Build error:", error);
     statusDiv.innerHTML = `
@@ -2489,11 +2516,17 @@ async function triggerBuild() {
         <span style="font-size: 0.85em; color: #a0b4d0;">⏱️ This message will auto-dismiss in 15 seconds (or click Dismiss)</span>
       </div>
     `;
-    const hideTimeout = setTimeout(() => {
+    
+    // Clear any previous timeout and set a new 15-second one for error message too
+    if (statusBarTimeout !== null) {
+      clearTimeout(statusBarTimeout);
+    }
+    statusBarTimeout = setTimeout(() => {
       statusDiv.classList.remove('show');
+      statusBarTimeout = null;
       console.log("[BUILD] Error message auto-hidden after 15 seconds");
     }, 15000);
-    console.log("[BUILD] Timeout ID:", hideTimeout);
+    console.log("[BUILD] Timeout ID set:", statusBarTimeout);
   }
 }
 
