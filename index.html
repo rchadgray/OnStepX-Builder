@@ -2416,25 +2416,26 @@ async function triggerBuild() {
   const statusDiv = document.getElementById('statusBar');
   statusDiv.innerHTML = '<strong>⏳ Uploading configuration files...</strong>';
   statusDiv.classList.add('show');
+  console.log("[BUILD] Starting build firmware process...");
 
   const configFileContent = generateConfig();
-  console.log("Generated Config.h length:", configFileContent.length, "bytes");
-  console.log("Config.h first 200 chars:", configFileContent.substring(0, 200));
+  console.log("[BUILD] Generated Config.h length:", configFileContent.length, "bytes");
+  console.log("[BUILD] Config.h first 200 chars:", configFileContent.substring(0, 200));
   
   const extendedConfigOutput = document.getElementById('extendedConfigOutput');
   let extendedConfigFileContent = extendedConfigOutput.value;
-  console.log("Extended config length:", extendedConfigFileContent.length, "bytes");
+  console.log("[BUILD] Extended config length:", extendedConfigFileContent.length, "bytes");
   
   if (!extendedConfigFileContent || extendedConfigFileContent.trim() === '') {
     extendedConfigFileContent = generateExtendedConfigFile();
-    console.log("Using default extended config, length:", extendedConfigFileContent.length, "bytes");
+    console.log("[BUILD] Using default extended config, length:", extendedConfigFileContent.length, "bytes");
   }
 
   try {
     const configB64 = btoa(configFileContent);
     const extendedB64 = btoa(extendedConfigFileContent);
-    console.log("Base64 Config.h length:", configB64.length);
-    console.log("Base64 extended.config.h length:", extendedB64.length);
+    console.log("[BUILD] Base64 Config.h length:", configB64.length);
+    console.log("[BUILD] Base64 extended.config.h length:", extendedB64.length);
     
     const response = await fetch('/.netlify/functions/upload', {
       method: 'POST',
@@ -2446,36 +2447,53 @@ async function triggerBuild() {
     });
 
     const result = await response.json();
-    console.log("Response:", result);
+    console.log("[BUILD] Response:", result);
     
     if (!response.ok) {
       throw new Error(result.message || 'Build trigger failed');
     }
 
+    console.log("[BUILD] Configuration uploaded successfully - setting 15 second timeout");
     statusDiv.innerHTML = `
       <div style="text-align: left; line-height: 1.8;">
-        <strong style="color: #4ecca3; font-size: 1.1em;">✓ Configuration uploaded successfully!</strong><br/>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <strong style="color: #4ecca3; font-size: 1.1em;">✓ Configuration uploaded successfully!</strong>
+          <button onclick="document.getElementById('statusBar').classList.remove('show');" style="background: transparent; border: 1px solid #4ecca3; color: #4ecca3; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">Dismiss</button>
+        </div>
         <span style="font-size: 0.95em;">Your firmware is compiling now. This typically takes 2-5 minutes.</span><br/>
         <br/>
         <strong>Next Steps:</strong><br/>
-        1. <a href="https://github.com/rchadgray/OnStepX_Platformio/actions" target="_blank" style="color: #4ecca3; text-decoration: underline;">View Build Progress</a> - Monitor the compilation in real-time<br/>
+        1. <a href="https://github.com/rchadgray/OnStepX_Platformio/actions" target="_blank" style="color: #4ecca3; text-decoration: underline; font-weight: bold;">👉 View Build Progress in New Tab</a> - Monitor the compilation in real-time<br/>
         2. Once complete, click the latest successful build to download your firmware<br/>
         3. Look for <strong>firmware-factory.bin</strong> or <strong>firmware-esp32.hex</strong> in the artifacts section<br/>
         <br/>
-        <span style="font-size: 0.9em; color: #a0b4d0;">💡 Tip: Bookmark the actions page to track all your builds</span>
+        <span style="font-size: 0.85em; color: #a0b4d0;">⏱️ This message will auto-dismiss in 15 seconds (or click Dismiss)</span>
       </div>
     `;
-    setTimeout(() => statusDiv.classList.remove('show'), 10000);
+    const hideTimeout = setTimeout(() => {
+      statusDiv.classList.remove('show');
+      console.log("[BUILD] Status message auto-hidden after 15 seconds");
+    }, 15000);
+    console.log("[BUILD] Timeout ID:", hideTimeout);
   } catch (error) {
-    console.error("Build error:", error);
+    console.error("[BUILD] Build error:", error);
     statusDiv.innerHTML = `
       <div style="text-align: left; line-height: 1.6;">
-        <strong style="color: #ff6b35;">❌ Build Failed</strong><br/>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <strong style="color: #ff6b35;">❌ Build Failed</strong>
+          <button onclick="document.getElementById('statusBar').classList.remove('show');" style="background: transparent; border: 1px solid #ff6b35; color: #ff6b35; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">Dismiss</button>
+        </div>
         <span style="font-size: 0.95em; color: #ff9999;">Error: ${error.message}</span><br/>
         <span style="font-size: 0.85em; color: #a0b4d0;">Please check your configuration and try again. Check the browser console for details.</span>
+        <br/>
+        <span style="font-size: 0.85em; color: #a0b4d0;">⏱️ This message will auto-dismiss in 15 seconds (or click Dismiss)</span>
       </div>
     `;
-    setTimeout(() => statusDiv.classList.remove('show'), 10000);
+    const hideTimeout = setTimeout(() => {
+      statusDiv.classList.remove('show');
+      console.log("[BUILD] Error message auto-hidden after 15 seconds");
+    }, 15000);
+    console.log("[BUILD] Timeout ID:", hideTimeout);
   }
 }
 
