@@ -30,9 +30,15 @@ exports.handler = async function(event) {
         // Decode Base64 content received from web UI before storing
         console.log("Decoding Base64 content...");
         const decodedConfigContent = Buffer.from(configFileContent, 'base64').toString('utf-8');
+        console.log("Decoded Config.h length:", decodedConfigContent.length, "bytes");
+        if (decodedConfigContent.length < 100) {
+            console.warn("WARNING: Config.h content seems very short:", decodedConfigContent.substring(0, 100));
+        }
+        
         let decodedExtendedConfigContent = '';
         if (extendedConfigFileContent) {
             decodedExtendedConfigContent = Buffer.from(extendedConfigFileContent, 'base64').toString('utf-8');
+            console.log("Decoded extended.config.h length:", decodedExtendedConfigContent.length, "bytes");
         }
         console.log("Base64 content decoded successfully.");
 

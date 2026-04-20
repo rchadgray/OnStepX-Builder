@@ -18,18 +18,34 @@ jobs:
       - name: Read configuration files
         id: read_configs
         run: |
-          config_h_content=$(cat Config.h)
+          echo "Checking for Config.h file..."
+          if [ -f Config.h ]; then
+            echo "Config.h found. Reading content..."
+            config_h_content=$(cat Config.h)
+            echo "Config.h size: $(wc -c < Config.h) bytes"
+          else
+            echo "ERROR: Config.h not found!"
+            exit 1
+          fi
+          
           echo "config_h_content<<EOF" >> $GITHUB_OUTPUT
           echo "$config_h_content" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          
           if [ -f extended.config.h ]; then
+            echo "extended.config.h found. Reading content..."
             extended_config_h_content=$(cat extended.config.h)
-            echo "extended_config_h_content<<EOF" >> $GITHUB_OUTPUT
-            echo "$extended_config_h_content" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            echo "extended.config.h size: $(wc -c < extended.config.h) bytes"
           else
-            echo "extended_config_h_content=''" >> $GITHUB_OUTPUT
+            echo "extended.config.h not found. Setting to empty."
+            extended_config_h_content=""
           fi
+          
+          echo "extended_config_h_content<<EOF" >> $GITHUB_OUTPUT
+          echo "$extended_config_h_content" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "Configuration files read successfully."
 
       - name: Trigger build in OnStepX_Platformio
         uses: peter-evans/repository-dispatch@v3

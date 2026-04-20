@@ -2191,24 +2191,36 @@ async function triggerBuild() {
   statusDiv.classList.add('show');
 
   const configFileContent = generateConfig();
+  console.log("Generated Config.h length:", configFileContent.length, "bytes");
+  console.log("Config.h first 200 chars:", configFileContent.substring(0, 200));
+  
   const extendedConfigOutput = document.getElementById('extendedConfigOutput');
   let extendedConfigFileContent = extendedConfigOutput.value;
+  console.log("Extended config length:", extendedConfigFileContent.length, "bytes");
   
   if (!extendedConfigFileContent || extendedConfigFileContent.trim() === '') {
     extendedConfigFileContent = generateExtendedConfigFile();
+    console.log("Using default extended config, length:", extendedConfigFileContent.length, "bytes");
   }
 
   try {
+    const configB64 = btoa(configFileContent);
+    const extendedB64 = btoa(extendedConfigFileContent);
+    console.log("Base64 Config.h length:", configB64.length);
+    console.log("Base64 extended.config.h length:", extendedB64.length);
+    
     const response = await fetch('/.netlify/functions/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        configFileContent: btoa(configFileContent),
-        extendedConfigFileContent: btoa(extendedConfigFileContent)
+        configFileContent: configB64,
+        extendedConfigFileContent: extendedB64
       })
     });
 
     const result = await response.json();
+    console.log("Response:", result);
+    
     if (!response.ok) {
       throw new Error(result.message || 'Build trigger failed');
     }
@@ -2227,11 +2239,12 @@ async function triggerBuild() {
       </div>
     `;
   } catch (error) {
+    console.error("Build error:", error);
     statusDiv.innerHTML = `
       <div style="text-align: left; line-height: 1.6;">
         <strong style="color: #ff6b35;">❌ Build Failed</strong><br/>
         <span style="font-size: 0.95em; color: #ff9999;">Error: ${error.message}</span><br/>
-        <span style="font-size: 0.85em; color: #a0b4d0;">Please check your configuration and try again.</span>
+        <span style="font-size: 0.85em; color: #a0b4d0;">Please check your configuration and try again. Check the browser console for details.</span>
       </div>
     `;
   }
