@@ -2239,6 +2239,7 @@ async function triggerBuild() {
         <span style="font-size: 0.9em; color: #a0b4d0;">💡 Tip: Bookmark the actions page to track all your builds</span>
       </div>
     `;
+    setTimeout(() => statusDiv.classList.remove('show'), 10000);
   } catch (error) {
     console.error("Build error:", error);
     statusDiv.innerHTML = `
@@ -2248,6 +2249,7 @@ async function triggerBuild() {
         <span style="font-size: 0.85em; color: #a0b4d0;">Please check your configuration and try again. Check the browser console for details.</span>
       </div>
     `;
+    setTimeout(() => statusDiv.classList.remove('show'), 10000);
   }
 }
 
