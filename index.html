@@ -2391,12 +2391,7 @@ function showStatus(msg) {
   }
   bar.textContent = msg;
   bar.classList.add('show');
-  statusBarTimeout = setTimeout(() => {
-    bar.classList.remove('show');
-    statusBarTimeout = null;
-    console.log("[STATUS] Auto-hidden after 3 seconds");
-  }, 3000);
-  console.log("[STATUS] Timeout ID:", statusBarTimeout);
+  console.log("[STATUS] Status message displayed (no auto-dismiss)");
 }
 
 // === EXTENDED CONFIG FUNCTIONS ===
@@ -2474,7 +2469,7 @@ async function triggerBuild() {
       throw new Error(result.message || 'Build trigger failed');
     }
 
-    console.log("[BUILD] Configuration uploaded successfully - setting 15 second timeout");
+    console.log("[BUILD] Configuration uploaded successfully - message will stay until user dismisses");
     statusDiv.innerHTML = `
       <div style="text-align: left; line-height: 1.8;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -2488,20 +2483,10 @@ async function triggerBuild() {
         2. Once complete, click the latest successful build to download your firmware<br/>
         3. Look for <strong>firmware-factory.bin</strong> or <strong>firmware-esp32.hex</strong> in the artifacts section<br/>
         <br/>
-        <span style="font-size: 0.85em; color: #a0b4d0;">⏱️ This message will auto-dismiss in 15 seconds (or click Dismiss)</span>
+        <span style="font-size: 0.85em; color: #a0b4d0;">💡 Click the Dismiss button when you're done reviewing</span>
       </div>
     `;
-    
-    // Clear any previous timeout and set a new 15-second one
-    if (statusBarTimeout !== null) {
-      clearTimeout(statusBarTimeout);
-    }
-    statusBarTimeout = setTimeout(() => {
-      statusDiv.classList.remove('show');
-      statusBarTimeout = null;
-      console.log("[BUILD] Status message auto-hidden after 15 seconds");
-    }, 15000);
-    console.log("[BUILD] Timeout ID set:", statusBarTimeout);
+    console.log("[BUILD] Success message displayed - no auto-dismiss");
   } catch (error) {
     console.error("[BUILD] Build error:", error);
     statusDiv.innerHTML = `
@@ -2513,20 +2498,10 @@ async function triggerBuild() {
         <span style="font-size: 0.95em; color: #ff9999;">Error: ${error.message}</span><br/>
         <span style="font-size: 0.85em; color: #a0b4d0;">Please check your configuration and try again. Check the browser console for details.</span>
         <br/>
-        <span style="font-size: 0.85em; color: #a0b4d0;">⏱️ This message will auto-dismiss in 15 seconds (or click Dismiss)</span>
+        <span style="font-size: 0.85em; color: #a0b4d0;">💡 Click the Dismiss button when you're done reviewing</span>
       </div>
     `;
-    
-    // Clear any previous timeout and set a new 15-second one for error message too
-    if (statusBarTimeout !== null) {
-      clearTimeout(statusBarTimeout);
-    }
-    statusBarTimeout = setTimeout(() => {
-      statusDiv.classList.remove('show');
-      statusBarTimeout = null;
-      console.log("[BUILD] Error message auto-hidden after 15 seconds");
-    }, 15000);
-    console.log("[BUILD] Timeout ID set:", statusBarTimeout);
+    console.log("[BUILD] Error message displayed - no auto-dismiss");
   }
 }
 
