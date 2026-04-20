@@ -232,6 +232,15 @@
   .btn-load:hover { background: #7a5aba; }
   .btn-build { background: #d84d42; color: #fff; }
   .btn-build:hover { background: #e55a4d; transform: translateY(-1px); }
+  .btn-build:disabled {
+    background: #4a4a58;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-build:disabled:hover {
+    background: #4a4a58;
+  }
 
   .output-area {
     background: var(--input-bg);
@@ -1814,13 +1823,13 @@ function buildFeatures() {
   const container = document.getElementById('features-container');
   const defaults = [
     {n:1, purpose:'OFF', name:'FEATURE1', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE1'},
-    {n:2, purpose:'OFF', name:'FEATURE2', pin:'OFF', onState:'HIGH'},
-    {n:3, purpose:'OFF', name:'FEATURE3', pin:'OFF', onState:'HIGH'},
-    {n:4, purpose:'OFF', name:'FEATURE4', pin:'OFF', onState:'HIGH'},
-    {n:5, purpose:'OFF', name:'FEATURE5', pin:'OFF', onState:'HIGH'},
-    {n:6, purpose:'OFF', name:'FEATURE6', pin:'OFF', onState:'HIGH'},
-    {n:7, purpose:'OFF', name:'FEATURE7', pin:'OFF', onState:'HIGH'},
-    {n:8, purpose:'INTERVALOMETER', name:'CANON 20D', pin:'AUX', onState:'HIGH'},
+    {n:2, purpose:'OFF', name:'FEATURE2', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE2'},
+    {n:3, purpose:'OFF', name:'FEATURE3', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE3'},
+    {n:4, purpose:'OFF', name:'FEATURE4', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE4'},
+    {n:5, purpose:'OFF', name:'FEATURE5', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE5'},
+    {n:6, purpose:'OFF', name:'FEATURE6', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE6'},
+    {n:7, purpose:'OFF', name:'FEATURE7', pin:'OFF', onState:'HIGH', purposeVal:'OFF', nameVal:'FEATURE7'},
+    {n:8, purpose:'INTERVALOMETER', name:'CANON 20D', pin:'AUX', onState:'HIGH', purposeVal:'OFF', nameVal:'CANON 20D'},
   ];
   let html = '';
   for (const f of defaults) {
@@ -2061,8 +2070,8 @@ function generateConfig() {
   L(' *           *** Read the compiler warnings and errors, they are there to help guard against invalid configurations ***');
   L(' *');
   L(' * ---------------------------------------------------------------------------------------------------------------------------------');
-  L(' * ADJUST THE FOLLOWING TO CONFIGURE YOUR CONTROLLER FEATURES ----------------------------------------------------------------------');
-  L(' * <-Req\'d = always must set, <-Often = usually must set, Option = optional, Adjust = adjust as req\'d, Infreq = infrequently changed');
+  L(' * ADJUST THE FOLLOWING TO CONFIGURE YOUR CONTROLLER FEATURES ----------------------------------------------------------------------
+ * <-Req'd = always must set, <-Often = usually must set, Option = optional, Adjust = adjust as req'd, Infreq = infrequently changed');
   L('*/');
   L('//      Parameter Name              Value   Default  Notes                                                                      Hint');
   L('');
