@@ -1,6 +1,6 @@
 const { Octokit } = require("@octokit/rest");
 
-// v3: Add extensive logging and simplify commit logic
+// v4: Refactor to use repository_dispatch instead of committing files
 exports.handler = async function(event) {
     console.log("Function starting...");
 
@@ -27,7 +27,7 @@ exports.handler = async function(event) {
         }
         console.log("Config.h content found.");
 
-        // Decode Base64 content received from web UI before storing
+        // Decode Base64 content received from web UI
         console.log("Decoding Base64 content...");
         const decodedConfigContent = Buffer.from(configFileContent, 'base64').toString('utf-8');
         console.log("Decoded Config.h length:", decodedConfigContent.length, "bytes");
@@ -45,48 +45,25 @@ exports.handler = async function(event) {
         const octokit = new Octokit({ auth: token });
         const owner = 'rchadgray';
         const repo = 'OnStepX-Builder';
-        const branch = 'main';
 
-        const commitFiles = async (files) => {
-            console.log(`Getting latest commit SHA for branch: ${branch}`);
-            const { data: refData } = await octokit.rest.git.getRef({ owner, repo, ref: `heads/${branch}` });
-            const parentSha = refData.object.sha;
-            console.log("Parent SHA:", parentSha);
+        console.log(`Triggering repository_dispatch event 'trigger-onstepx-build' on ${owner}/${repo}`);
+        
+        await octokit.rest.repos.createDispatchEvent({
+            owner,
+            repo,
+            event_type: 'trigger-onstepx-build',
+            client_payload: {
+                config_h: decodedConfigContent,
+                extended_config_h: decodedExtendedConfigContent
+            }
+        });
 
-            console.log("Creating blobs for file content...");
-            const blobPromises = files.map(file => 
-                octokit.rest.git.createBlob({ owner, repo, content: file.content, encoding: 'utf-8' })
-                    .then(blob => ({ path: file.path, sha: blob.data.sha, mode: '100644', type: 'blob' }))
-            );
-            const tree = await Promise.all(blobPromises);
-            console.log("Blobs created:", tree.map(t => t.path).join(', '));
-
-            console.log("Creating new tree...");
-            const { data: newTree } = await octokit.rest.git.createTree({ owner, repo, tree, base_tree: parentSha });
-            console.log("New tree SHA:", newTree.sha);
-
-            const commitMessage = `feat: Upload configuration files from web UI\n\n${tree.map(t => t.path).join('\n')}`;
-            console.log("Creating new commit...");
-            const { data: newCommit } = await octokit.rest.git.createCommit({ owner, repo, message: commitMessage, tree: newTree.sha, parents: [parentSha] });
-            console.log("New commit SHA:", newCommit.sha);
-
-            console.log("Updating branch reference...");
-            await octokit.rest.git.updateRef({ owner, repo, ref: `heads/${branch}`, sha: newCommit.sha });
-            console.log("Branch reference updated successfully.");
-        };
-
-        const filesToCommit = [{ path: 'Config.h', content: decodedConfigContent }];
-        if (decodedExtendedConfigContent) {
-            console.log("extended.config.h content found.");
-            filesToCommit.push({ path: 'extended.config.h', content: decodedExtendedConfigContent });
-        }
-
-        await commitFiles(filesToCommit);
-
+        console.log("Repository dispatch event triggered successfully.");
+        
         console.log("Function executed successfully.");
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: "Files committed successfully!" }),
+            body: JSON.stringify({ message: "Build successfully triggered via repository_dispatch!" }),
         };
 
     } catch (error) {

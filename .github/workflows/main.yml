@@ -1,51 +1,17 @@
 name: Trigger OnStepX Build
 
 on:
-  push:
-    paths:
-      - 'Config.h'
-      - 'extended.config.h'
+  repository_dispatch:
+    types: [trigger-onstepx-build]
 
 jobs:
   trigger-build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT_TOKEN }}
-
-      - name: Read configuration files
-        id: read_configs
+      - name: Log Payload
         run: |
-          echo "Checking for Config.h file..."
-          if [ -f Config.h ]; then
-            echo "Config.h found. Reading content..."
-            config_h_content=$(cat Config.h)
-            echo "Config.h size: $(wc -c < Config.h) bytes"
-          else
-            echo "ERROR: Config.h not found!"
-            exit 1
-          fi
-          
-          echo "config_h_content<<EOF" >> $GITHUB_OUTPUT
-          echo "$config_h_content" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          if [ -f extended.config.h ]; then
-            echo "extended.config.h found. Reading content..."
-            extended_config_h_content=$(cat extended.config.h)
-            echo "extended.config.h size: $(wc -c < extended.config.h) bytes"
-          else
-            echo "extended.config.h not found. Setting to empty."
-            extended_config_h_content=""
-          fi
-          
-          echo "extended_config_h_content<<EOF" >> $GITHUB_OUTPUT
-          echo "$extended_config_h_content" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          echo "Configuration files read successfully."
+          echo "Received client payload:"
+          echo "${{ toJSON(github.event.client_payload) }}"
 
       - name: Trigger build in OnStepX_Platformio
         uses: peter-evans/repository-dispatch@v3
@@ -55,20 +21,7 @@ jobs:
           event-type: build-onstepx
           client-payload: |
             {
-              "config_h": ${{ toJSON(steps.read_configs.outputs.config_h_content) }},
-              "extended_config_h": ${{ toJSON(steps.read_configs.outputs.extended_config_h_content) }}
+              "config_h": ${{ toJSON(github.event.client_payload.config_h) }},
+              "extended_config_h": ${{ toJSON(github.event.client_payload.extended_config_h) }}
             }
 
-      - name: Clean up config files
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git rm --ignore-unmatch Config.h
-          git rm --ignore-unmatch extended.config.h
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: Clean up config files after build trigger [skip ci]"
-            git pull --rebase origin main
-            git push
-          else
-            echo "No config files to clean up."
-          fi
