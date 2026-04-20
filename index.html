@@ -1554,7 +1554,7 @@
     <button class="btn btn-copy" onclick="copyConfig()">Copy to Clipboard</button>
     <button class="btn btn-download" onclick="downloadConfig()">Download Config.h</button>
     <button class="btn btn-load" onclick="document.getElementById('fileInput').click()">Load Existing Config.h</button>
-    <button class="btn btn-build" onclick="triggerBuild()">🔨 Build Firmware</button>
+    <button id="buildButtonOutput" class="btn btn-build" onclick="triggerBuild()" disabled>🔨 Build Firmware</button>
     <input type="file" id="fileInput" accept=".h" style="display:none" onchange="loadConfig(event)">
   </div>
   <div id="statusBar" class="status-bar"></div>
@@ -1567,7 +1567,7 @@
 <div class="btn-row" style="position:sticky;bottom:0;background:var(--bg);padding:10px 0;z-index:10;">
   <button class="btn btn-generate" onclick="generateConfig(); showTab('output');">Generate &amp; View Config.h</button>
   <button class="btn btn-copy" onclick="generateConfig(); copyConfig();">Generate &amp; Copy</button>
-  <button class="btn btn-build" onclick="triggerBuild();">🔨 Build Firmware</button>
+  <button id="buildButtonBottom" class="btn btn-build" onclick="triggerBuild();" disabled>🔨 Build Firmware</button>
 </div>
 
 <script>
@@ -2331,6 +2331,11 @@ function generateConfig() {
 
   document.getElementById('configOutput').value = c;
   showStatus('Config.h generated successfully!');
+  
+  // Enable the build buttons now that a config exists
+  document.getElementById('buildButtonOutput').disabled = false;
+  document.getElementById('buildButtonBottom').disabled = false;
+  
   return c;
 }
 
@@ -2377,6 +2382,9 @@ function loadConfig(event) {
       }
     }
     showStatus('Config.h loaded! Values populated from file.');
+    // Also enable build buttons when a file is loaded
+    document.getElementById('buildButtonOutput').disabled = false;
+    document.getElementById('buildButtonBottom').disabled = false;
   };
   reader.readAsText(file);
 }
