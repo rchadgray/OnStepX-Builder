@@ -11,7 +11,9 @@ jobs:
       - name: Log Payload
         run: |
           echo "Received client payload:"
-          echo "${{ toJSON(github.event.client_payload) }}"
+          cat <<'EOF'
+          ${{ toJSON(github.event.client_payload) }}
+          EOF
 
       - name: Trigger build in OnStepX_Platformio
         uses: peter-evans/repository-dispatch@v3
