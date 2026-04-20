@@ -267,13 +267,30 @@
     resize: vertical;
   }
   .status-bar {
-    text-align: center;
-    padding: 8px;
-    font-size: 0.85em;
-    color: var(--green);
+    background: rgba(13, 27, 42, 0.95);
+    border: 2px solid var(--green);
+    border-radius: 6px;
+    padding: 16px;
+    font-size: 0.9em;
+    color: var(--text);
     display: none;
+    margin: 16px 0;
+    box-shadow: 0 4px 12px rgba(78, 204, 163, 0.2);
   }
-  .status-bar.show { display: block; }
+  .status-bar.show { 
+    display: block;
+    animation: slideDown 0.3s ease-out;
+  }
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   .credit {
     text-align: center;
@@ -2170,7 +2187,7 @@ function downloadExtended() {
 
 async function triggerBuild() {
   const statusDiv = document.getElementById('statusBar');
-  statusDiv.textContent = 'Generating configuration and starting build...';
+  statusDiv.innerHTML = '<strong>⏳ Uploading configuration files...</strong>';
   statusDiv.classList.add('show');
 
   const configFileContent = generateConfig();
@@ -2196,9 +2213,27 @@ async function triggerBuild() {
       throw new Error(result.message || 'Build trigger failed');
     }
 
-    statusDiv.innerHTML = '<strong>✓ Build started successfully!</strong> <a href="https://github.com/rchadgray/OnStepX_Platformio/actions" target="_blank">View Progress</a>';
+    statusDiv.innerHTML = `
+      <div style="text-align: left; line-height: 1.8;">
+        <strong style="color: #4ecca3; font-size: 1.1em;">✓ Configuration uploaded successfully!</strong><br/>
+        <span style="font-size: 0.95em;">Your firmware is compiling now. This typically takes 2-5 minutes.</span><br/>
+        <br/>
+        <strong>Next Steps:</strong><br/>
+        1. <a href="https://github.com/rchadgray/OnStepX_Platformio/actions" target="_blank" style="color: #4ecca3; text-decoration: underline;">View Build Progress</a> - Monitor the compilation in real-time<br/>
+        2. Once complete, click the latest successful build to download your firmware<br/>
+        3. Look for <strong>firmware-factory.bin</strong> or <strong>firmware-esp32.hex</strong> in the artifacts section<br/>
+        <br/>
+        <span style="font-size: 0.9em; color: #a0b4d0;">💡 Tip: Bookmark the actions page to track all your builds</span>
+      </div>
+    `;
   } catch (error) {
-    statusDiv.innerHTML = '<strong>Error:</strong> ' + error.message;
+    statusDiv.innerHTML = `
+      <div style="text-align: left; line-height: 1.6;">
+        <strong style="color: #ff6b35;">❌ Build Failed</strong><br/>
+        <span style="font-size: 0.95em; color: #ff9999;">Error: ${error.message}</span><br/>
+        <span style="font-size: 0.85em; color: #a0b4d0;">Please check your configuration and try again.</span>
+      </div>
+    `;
   }
 }
 
