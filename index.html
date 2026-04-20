@@ -232,14 +232,14 @@
   .btn-load:hover { background: #7a5aba; }
   .btn-build { background: #d84d42; color: #fff; }
   .btn-build:hover { background: #e55a4d; transform: translateY(-1px); }
-  .btn-build:disabled {
+
+  /* Disabled state specifically for build buttons */
+  button[id^="buildButton"]:disabled,
+  button[id^="buildButton"]:disabled:hover {
     background: #4a4a58;
     color: #999;
     cursor: not-allowed;
     transform: none;
-  }
-  .btn-build:disabled:hover {
-    background: #4a4a58;
   }
 
   .output-area {
