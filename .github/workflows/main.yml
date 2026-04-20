@@ -67,6 +67,7 @@ jobs:
           git rm --ignore-unmatch extended.config.h
           if ! git diff --cached --quiet; then
             git commit -m "chore: Clean up config files after build trigger [skip ci]"
+            git pull --rebase origin main
             git push
           else
             echo "No config files to clean up."
