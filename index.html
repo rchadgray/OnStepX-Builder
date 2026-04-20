@@ -21,27 +21,18 @@
     --warn: #ff6b35;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  #matrixCanvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: -1;
-    pointer-events: none;
-  }
   body {
     font-family: 'Segoe UI', Consolas, monospace;
-    background: transparent;
-    color: var(--text);
-    padding: 20px;
-    line-height: 1.5;
-    position: relative;
-  }
-  html {
     background: var(--bg);
+    color: var(--text);
+    padding: 0 20px; /* Remove top/bottom padding */
+    line-height: 1.5;
   }
   h1 {
     text-align: center;
     color: var(--highlight);
+    margin-top: 0;
+    padding-top: 10px; /* Reduced padding */
     margin-bottom: 5px;
     font-size: 1.8em;
   }
@@ -305,7 +296,7 @@
     text-align: center;
     color: #8a9aaa;
     font-size: 0.75em;
-    margin-top: 8px;
+    margin-top: 0; /* Removed top margin */
     margin-bottom: 20px;
   }
   .credit a {
@@ -324,9 +315,8 @@
 </style>
 </head>
 <body>
-<canvas id="matrixCanvas"></canvas>
 
-<h1>OnStepX Configuration Generator</h1>
+<h1>OnStepX Configuration and Firmware Generator</h1>
 <p class="credit">Web configurator interface based on <a href="https://github.com/christm45/OnStepX-Configurator" target="_blank">OnStepX-Configurator</a> by christm45</p>
 
 <div class="tabs" id="tabs">
@@ -2534,108 +2524,6 @@ calcAxis2();
 calcAxis3();
 calcSlew();
 calcPEC();
-
-// === RETRO ARCADE STARFIELD BACKGROUND ===
-(function() {
-  const canvas = document.getElementById('matrixCanvas');
-  const ctx = canvas.getContext('2d');
-
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  const NUM_STARS = 300;
-  const SPEED = 2;
-  const stars = [];
-
-  function initStar(star) {
-    star.x = (Math.random() - 0.5) * canvas.width * 2;
-    star.y = (Math.random() - 0.5) * canvas.height * 2;
-    star.z = Math.random() * canvas.width;
-    star.pz = star.z;
-  }
-
-  for (let i = 0; i < NUM_STARS; i++) {
-    const s = {};
-    initStar(s);
-    // Spread initial z so stars don't all start at the same depth
-    s.z = Math.random() * canvas.width;
-    s.pz = s.z;
-    stars.push(s);
-  }
-
-  function draw() {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-
-    // Fade-trail for motion streaks
-    ctx.fillStyle = 'rgba(26, 26, 46, 0.25)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < stars.length; i++) {
-      const s = stars[i];
-
-      // Move star closer
-      s.z -= SPEED;
-
-      if (s.z <= 0) {
-        initStar(s);
-        s.z = canvas.width;
-        s.pz = s.z;
-        continue;
-      }
-
-      // Project current position
-      const sx = (s.x / s.z) * cx + cx;
-      const sy = (s.y / s.z) * cy + cy;
-
-      // Project previous position for streak
-      const px = (s.x / s.pz) * cx + cx;
-      const py = (s.y / s.pz) * cy + cy;
-
-      s.pz = s.z;
-
-      // Skip if off-screen
-      if (sx < 0 || sx > canvas.width || sy < 0 || sy > canvas.height) {
-        initStar(s);
-        continue;
-      }
-
-      // Brightness based on depth (closer = brighter)
-      const depth = 1 - s.z / canvas.width;
-      const size = depth * 3;
-
-      // Color: white core with slight teal/green tint for closer stars
-      if (depth > 0.7) {
-        ctx.strokeStyle = 'rgba(200, 255, 240, ' + (depth * 0.9) + ')';
-        ctx.lineWidth = size * 0.8;
-      } else if (depth > 0.4) {
-        ctx.strokeStyle = 'rgba(78, 204, 163, ' + (depth * 0.7) + ')';
-        ctx.lineWidth = size * 0.6;
-      } else {
-        ctx.strokeStyle = 'rgba(78, 130, 180, ' + (depth * 0.5) + ')';
-        ctx.lineWidth = size * 0.4;
-      }
-
-      // Draw streak line
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(sx, sy);
-      ctx.stroke();
-
-      // Draw bright dot at star head for close stars
-      if (depth > 0.6) {
-        ctx.fillStyle = 'rgba(255, 255, 255, ' + (depth * 0.8) + ')';
-        ctx.fillRect(sx - size / 2, sy - size / 2, size, size);
-      }
-    }
-  }
-
-  setInterval(draw, 33); // ~30fps for that retro feel
-})();
 </script>
 </body>
 </html>
