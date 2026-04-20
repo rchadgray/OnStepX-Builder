@@ -2389,9 +2389,14 @@ function showStatus(msg) {
     statusBarTimeout = null;
     console.log("[STATUS] Cleared previous timeout");
   }
-  bar.textContent = msg;
+  bar.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <span>${msg}</span>
+      <button onclick="document.getElementById('statusBar').classList.remove('show');" style="background: transparent; border: 1px solid var(--green); color: var(--green); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">Dismiss</button>
+    </div>
+  `;
   bar.classList.add('show');
-  console.log("[STATUS] Status message displayed (no auto-dismiss)");
+  console.log("[STATUS] Status message displayed with dismiss button (no auto-dismiss)");
 }
 
 // === EXTENDED CONFIG FUNCTIONS ===
