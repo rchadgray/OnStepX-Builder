@@ -27,6 +27,15 @@ exports.handler = async function(event) {
         }
         console.log("Config.h content found.");
 
+        // Decode Base64 content received from web UI before storing
+        console.log("Decoding Base64 content...");
+        const decodedConfigContent = Buffer.from(configFileContent, 'base64').toString('utf-8');
+        let decodedExtendedConfigContent = '';
+        if (extendedConfigFileContent) {
+            decodedExtendedConfigContent = Buffer.from(extendedConfigFileContent, 'base64').toString('utf-8');
+        }
+        console.log("Base64 content decoded successfully.");
+
         const octokit = new Octokit({ auth: token });
         const owner = 'rchadgray';
         const repo = 'OnStepX-Builder';
@@ -40,7 +49,7 @@ exports.handler = async function(event) {
 
             console.log("Creating blobs for file content...");
             const blobPromises = files.map(file => 
-                octokit.rest.git.createBlob({ owner, repo, content: file.content, encoding: 'base64' })
+                octokit.rest.git.createBlob({ owner, repo, content: file.content, encoding: 'utf-8' })
                     .then(blob => ({ path: file.path, sha: blob.data.sha, mode: '100644', type: 'blob' }))
             );
             const tree = await Promise.all(blobPromises);
@@ -60,10 +69,10 @@ exports.handler = async function(event) {
             console.log("Branch reference updated successfully.");
         };
 
-        const filesToCommit = [{ path: 'Config.h', content: configFileContent }];
-        if (extendedConfigFileContent) {
+        const filesToCommit = [{ path: 'Config.h', content: decodedConfigContent }];
+        if (decodedExtendedConfigContent) {
             console.log("extended.config.h content found.");
-            filesToCommit.push({ path: 'extended.config.h', content: extendedConfigFileContent });
+            filesToCommit.push({ path: 'extended.config.h', content: decodedExtendedConfigContent });
         }
 
         await commitFiles(filesToCommit);
