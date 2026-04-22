@@ -380,7 +380,10 @@
   </div>
 
   <div class="calc-box">
-    <div class="section-title">Axis2 Dec/Altitude &mdash; Steps Per Degree Calculator</div>
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>Axis2 Dec/Altitude &mdash; Steps Per Degree Calculator</span>
+      <button class="btn btn-copy" style="padding: 4px 12px; font-size: 0.8em;" onclick="copyAxis1ToAxis2()">📋 Copy from Axis1</button>
+    </div>
     <div class="field-row">
       <label class="field-label">Motor Steps (per revolution)</label>
       <input type="number" id="calc_a2_motor_steps" value="400" onchange="calcAxis2()">
@@ -565,7 +568,7 @@
     </div>
     <div class="field-row">
       <label class="field-label">PINMAP <span class="hint-tag hint-reqd">Req'd</span></label>
-      <select id="PINMAP">
+      <select id="PINMAP" onchange="updateBuildButtonState()">
         <option value="OFF">OFF</option>
         <option value="MiniPCB">MiniPCB</option>
         <option value="MiniPCB2">MiniPCB2</option>
@@ -1571,6 +1574,22 @@
 <script>
 // === DEFAULT CONFIGURATION FROM CONFIG.H ===
 let statusBarTimeout = null;  // Global timeout tracker to prevent conflicts
+let isConfigReady = false;
+const unsupportedPinmaps = ['BTT_SKR_PRO', 'MaxSTM3', 'CNC3', 'CNC3_2', 'OFF'];
+
+function updateBuildButtonState() {
+  const pinmap = document.getElementById('PINMAP').value;
+  const btnOut = document.getElementById('buildButtonOutput');
+  const btnBot = document.getElementById('buildButtonBottom');
+  
+  if (isConfigReady && !unsupportedPinmaps.includes(pinmap)) {
+    btnOut.disabled = false;
+    btnBot.disabled = false;
+  } else {
+    btnOut.disabled = true;
+    btnBot.disabled = true;
+  }
+}
 
 const defaultConfig = {
   // Controller
@@ -1887,6 +1906,16 @@ function calcAxis1() {
   calcSlew();
   calcPEC();
 }
+
+function copyAxis1ToAxis2() {
+  document.getElementById('calc_a2_motor_steps').value = document.getElementById('calc_a1_motor_steps').value;
+  document.getElementById('calc_a2_microsteps').value = document.getElementById('calc_a1_microsteps').value;
+  document.getElementById('calc_a2_worm').value = document.getElementById('calc_a1_worm').value;
+  document.getElementById('calc_a2_pulley').value = document.getElementById('calc_a1_pulley').value;
+  calcAxis2();
+  showStatus('Copied Axis1 calculator settings to Axis2');
+}
+
 function calcAxis2() {
   const ms = parseFloat(document.getElementById('calc_a2_motor_steps').value) || 0;
   const us = parseFloat(document.getElementById('calc_a2_microsteps').value) || 1;
@@ -2328,11 +2357,15 @@ function generateConfig() {
   L('#include "Extended.config.h"');
 
   document.getElementById('configOutput').value = c;
-  showStatus('Config.h generated successfully!');
+  isConfigReady = true;
+  updateBuildButtonState();
   
-  // Enable the build buttons now that a config exists
-  document.getElementById('buildButtonOutput').disabled = false;
-  document.getElementById('buildButtonBottom').disabled = false;
+  const pinmap = document.getElementById('PINMAP').value;
+  if (unsupportedPinmaps.includes(pinmap)) {
+    showStatus(`Config.h generated! (Cloud build is not yet supported for ${pinmap})`);
+  } else {
+    showStatus('Config.h generated successfully!');
+  }
   
   return c;
 }
@@ -2379,10 +2412,15 @@ function loadConfig(event) {
         }
       }
     }
-    showStatus('Config.h loaded! Values populated from file.');
-    // Also enable build buttons when a file is loaded
-    document.getElementById('buildButtonOutput').disabled = false;
-    document.getElementById('buildButtonBottom').disabled = false;
+    isConfigReady = true;
+    updateBuildButtonState();
+    
+    const pinmap = document.getElementById('PINMAP').value;
+    if (unsupportedPinmaps.includes(pinmap)) {
+      showStatus(`Config.h loaded! Values populated. (Cloud build is not yet supported for ${pinmap})`);
+    } else {
+      showStatus('Config.h loaded! Values populated from file.');
+    }
   };
   reader.readAsText(file);
 }
@@ -2432,6 +2470,12 @@ function downloadExtended() {
 }
 
 async function triggerBuild() {
+  const pinmap = document.getElementById('PINMAP').value;
+  if (unsupportedPinmaps.includes(pinmap)) {
+    showStatus(`❌ Cloud build is not yet supported for ${pinmap} MCUs.`);
+    return;
+  }
+
   const statusDiv = document.getElementById('statusBar');
   
   // Clear any previous timeout to prevent conflicts
