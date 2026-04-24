@@ -1,8 +1,0 @@
-{
-  "name": "onstepx-builder-backend",
-  "version": "1.0.0",
-  "description": "Backend for OnStepX Builder file upload",
-  "dependencies": {
-    "@octokit/rest": "^20.0.2"
-  }
-}
